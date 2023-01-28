@@ -1,0 +1,10 @@
+{
+  "name": "yandex-alice-client",
+  "license": "MIT",
+  "author": "TheEVolk",
+  "type": "module",
+  "dependencies": {
+    "uuid": "^9.0.0",
+    "ws": "^8.12.0"
+  }
+}
