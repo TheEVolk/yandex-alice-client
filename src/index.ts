@@ -24,7 +24,6 @@ export default class YandexAliceClient {
 
   private onBuffer(data: Buffer) {
     this.buffers.push(data.subarray(4));
-    console.log('got buffer', data.length);
   }
 
   private onMessage(data: Buffer) {
@@ -59,6 +58,7 @@ export default class YandexAliceClient {
       const buffer = Buffer.concat(this.buffers);
       request.audio = buffer;
       request.needs.delete('audio');
+      this.buffers = [];
     }
 
     if (request.needs.size > 0) {
