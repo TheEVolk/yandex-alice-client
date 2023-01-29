@@ -3,6 +3,8 @@
   "license": "MIT",
   "author": "TheEVolk",
   "type": "module",
+  "main": "lib/index.js",
+  "version": "0.1.2",
   "dependencies": {
     "uuid": "^9.0.0",
     "ws": "^8.12.0"
@@ -13,5 +15,8 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.json"
-  }
+  },
+  "files": [
+    "lib/"
+  ]
 }
