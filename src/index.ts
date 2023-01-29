@@ -124,7 +124,7 @@ export default class YandexAliceClient {
 
       this.requests.set(requestId, {
         at: new Date(),
-        needs: new Set(['VinsResponse']),
+        needs,
         directives: [],
         resolve,
         reject
