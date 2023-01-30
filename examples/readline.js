@@ -8,6 +8,6 @@ const client = new YandexAliceClient();
 await client.connect();
 
 rl.on('line', async (line) => {
-  const { response } = await client.sendText(line.toString());
+  const { response } = await client.sendText(line.toString(), true);
   console.log('[A]', response.card.text);
 });

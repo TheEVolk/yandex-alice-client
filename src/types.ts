@@ -4,6 +4,7 @@ export interface IAliceClientOptions {
 }
 
 export interface IAliceActiveRequest {
+  id: string;
   at: Date;
   needs: Set<string>;
   directives: IAliceResponseDirective[];
@@ -31,6 +32,7 @@ export interface IAliceResponseHeader {
   messageId: string;
   refMessageId: string;
   namespace: 'Vins' | 'TTS';
+  streamId?: number;
 }
 
 export interface IAliceResponseDirective {
@@ -45,6 +47,7 @@ export interface IAliceResponse {
 
 export interface IAliceStreamcontrol {
    messageId: string;
+   streamId: number;
 }
 
 export interface IAliceStreamcontrolResponse {

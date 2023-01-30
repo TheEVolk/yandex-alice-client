@@ -6,7 +6,7 @@
   "keywords": ["yandex", "alice", "iot"],
   "type": "module",
   "main": "lib/index.js",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "dependencies": {
     "uuid": "^9.0.0",
     "ws": "^8.12.0"
