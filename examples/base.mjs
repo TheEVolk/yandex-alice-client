@@ -1,4 +1,4 @@
-import YandexAliceClient from '../lib/index.js';
+import YandexAliceClient from '../lib/index.mjs';
 
 const client = new YandexAliceClient();
 await client.connect();

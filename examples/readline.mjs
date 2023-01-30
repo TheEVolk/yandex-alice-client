@@ -1,6 +1,6 @@
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
-import YandexAliceClient from '../lib/index.js';
+import YandexAliceClient from '../lib/index.mjs';
 
 const rl = readline.createInterface({ input, output });
 
