@@ -4,7 +4,7 @@ import YandexAliceClient from '../lib/index.mjs';
 const client = new YandexAliceClient();
 await client.connect();
 
-const response = await client.sendText('hello world', true);
+const response = await client.sendText('hello world', { isTTS: true });
 console.log(response);
 
 await writeFile('response.opus', response.audio);

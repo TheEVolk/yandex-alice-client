@@ -64,7 +64,9 @@ export default class Uniproxy {
   }
 
   public receiveData(messageId: string, needs: string[] = []): Promise<IAliceResponse> {
-    return new Promise((resolve, reject) => {
+    let timeoutId;
+    const promise = new Promise((resolve, reject) => {
+      timeoutId = setTimeout(() => reject(`Message ${messageId} timeout.`), 5e3);
       this.requests.set(messageId, {
         id: messageId,
         at: new Date(),
@@ -73,23 +75,27 @@ export default class Uniproxy {
         resolve,
         reject
       });
+    })
+    
+    promise.finally(() => {
+      this.requests.delete(messageId);
+      clearTimeout(timeoutId);
     });
+
+    return promise as Promise<IAliceResponse>;
   }
 
-  public sendEvent(namespace: string, name: string, payload: any, streamId?) {
+  public sendEvent(namespace: string, name: string, payload: any, header: any = {}) {
     const event = {
       header: {
         namespace,
         name,
         messageId: v4(),
+        ...header
         // seqNumber
       },
       payload
     } as any;
-
-    if (streamId) {
-      event.header.streamId = streamId;
-    }
 
     this.ws.send(JSON.stringify({ event }));
     return event.header.messageId;

@@ -1,4 +1,5 @@
 # yandex-alice-client
+![Downloads](https://img.shields.io/npm/dm/yandex-alice-client.svg)
 Клиент для отправки запросов Яндекс Алисе и получения от неё ответов.
 
 ## Как использовать

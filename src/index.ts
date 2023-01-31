@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import type { IAliceClientOptions, IAliceSendTextResponse } from './types';
+import type { IAliceClientOptions, IAliceSendTextOptions, IAliceSendTextResponse, IAliceTTSOptions } from './types';
 import Uniproxy from './uniproxy.js';
 
 export default class YandexAliceClient {
@@ -13,24 +13,31 @@ export default class YandexAliceClient {
     await this.uniproxy.connect(this.options.server);
   }
 
-  async sendText(text: string, isTTS = false): Promise<IAliceSendTextResponse> {
+  public async synchronizeState(data) {
+    this.uniproxy.sendEvent('System', 'SynchronizeState', data);
+  }
+
+  async sendText(text: string, options: Partial<IAliceSendTextOptions> = {}): Promise<IAliceSendTextResponse> {
+    if (typeof options === 'boolean') {
+      options = {};
+    }
+
+    options = this.normalizeSendTextOptions(options);
+
     const messageId = this.uniproxy.sendEvent('Vins', 'TextInput', {
       request: {
-        voice_session: !!isTTS,
+        voice_session: options.isTTS,
         event: {
           type: 'text_input',
           text
         }
       },
-      application: this.getApplication(),
-      header: {
-        request_id: v4()
-      }
+      application: this.getApplication()
     });
 
     const response = await this.uniproxy.receiveData(
       messageId,
-      isTTS ? ['VinsResponse', 'audio'] : ['VinsResponse']
+      options.isTTS ? ['VinsResponse', 'audio'] : ['VinsResponse']
     );
 
     return {
@@ -39,21 +46,46 @@ export default class YandexAliceClient {
     };
   }
 
-  private getApplication() {
+  async tts(text: string, options: Partial<IAliceTTSOptions> = {}) {
+    const messageId = this.uniproxy.sendEvent('TTS', 'Generate', {
+      voice: options.voice || 'shitova.us',
+      lang: options.voice || 'ru-RU',
+      format: options.voice || 'audio/opus',
+      emotion: options.voice || 'neutral',
+      quality: options.voice || 'UltraHigh',
+      text
+    });
+
+    const response = await this.uniproxy.receiveData(
+      messageId,
+      ['audio']
+    );
+
+    return response.audio;
+  }
+
+  public getApplication() {
     return {
-      app_id: "aliced",
-      app_version: "1.2.3",
-      os_version: "5.0",
-      platform: "android",
+      app_id: 'aliced',
+      app_version: '1.2.3',
+      os_version: '5.0',
+      platform: 'android',
       uuid: v4(),
-      lang: "ru-RU",
+      lang: 'ru-RU',
       client_time: new Date().toDateString(),
-      timezone: "Europe/Moscow",
+      timezone: 'Europe/Moscow',
       timestamp: Math.floor(Date.now() / 1e3).toString(),
     };
   }
 
-  close() {
+  public close() {
     this.uniproxy.close();
+  }
+
+  private normalizeSendTextOptions(rawOptions: Partial<IAliceSendTextOptions>) {
+    const options = { ...rawOptions };
+    options.isTTS = options.isTTS ?? false;
+
+    return options;
   }
 }

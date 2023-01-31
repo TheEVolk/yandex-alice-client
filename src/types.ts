@@ -3,6 +3,18 @@ export interface IAliceClientOptions {
   server?: string;
 }
 
+export interface IAliceSendTextOptions {
+  isTTS: boolean;
+}
+
+export interface IAliceTTSOptions {
+  voice: string;
+  lang: string;
+  format: string;
+  emotion: string;
+  quality: string;
+}
+
 export interface IAliceActiveRequest {
   id: string;
   at: Date;
