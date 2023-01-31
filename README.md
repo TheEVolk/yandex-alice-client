@@ -1,6 +1,13 @@
 # yandex-alice-client
 ![Downloads](https://img.shields.io/npm/dm/yandex-alice-client.svg)
+
 Клиент для отправки запросов Яндекс Алисе и получения от неё ответов.
+
+## Преимущества
+* Минимальное количество зависимостей 💭
+* Поддержка TypeScript типизации 🪑
+* Удобный и простой API 🚀
+* TTS 📣
 
 ## Как использовать
 ```js
@@ -13,12 +20,18 @@ await client.connect();
 const { response } = await client.sendText('hello world');
 console.log(response.card.text);
 
-// Alice TTS
-const { audio } = await client.sendText('hello world', true);
+// Alice with TTS
+const { audio } = await client.sendText('hello world', { isTTS: true });
 console.log(audio); // buffer (audio/opus)
 
 await writeFile('response.opus', audio);
 
+// TTS
+const audio = await client.sendText('что за чудеса происходят?', { voice: 'levitan' });
+console.log(audio); // buffer (audio/opus)
+await writeFile('response.opus', audio);
+
+// close client connection
 await client.close();
 ```
 
@@ -33,3 +46,5 @@ await client.close();
 * sendAudio или streamAudio чтобы отправлять голосовые команды
 
 Пусть это будет некое виртуальное yandexio, точнее его часть, что общается с Алисой.
+
+> С любовью к Яндекс ❤️
