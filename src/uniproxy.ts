@@ -1,13 +1,14 @@
 import { randomUUID } from "crypto";
+import { setTimeout } from "timers/promises";
 import { client as WebSocketClient, connection, Message } from "websocket";
 import {
   ApiResDirective,
   ApiResDirectiveRoot,
   Streamcontrol,
   StreamcontrolRoot,
-} from "../typings/api";
-import log from "../utils/logger";
-import tryParseJSON from "../utils/tryParseJSON";
+} from "./typings/api";
+import log from "./utils/logger";
+import tryParseJSON from "./utils/tryParseJSON";
 import Store from "./store";
 import type { IAliceActiveRequest, IAliceClientOptions } from "./types";
 
@@ -20,13 +21,14 @@ interface IAliceStream {
 export default class Uniproxy {
   private streams = new Map<number, IAliceStream>();
   private conn?: connection;
+  public store = new Store(this.opts);
+  public client: WebSocketClient;
 
-  constructor(
-    public opts: IAliceClientOptions,
-    public store = new Store(opts),
-    public client = new WebSocketClient()
-  ) {
+  constructor(public opts: IAliceClientOptions) {
     this.opts = opts;
+    this.client = new WebSocketClient({
+      closeTimeout: this.opts.connTimeout,
+    });
   }
 
   /**
@@ -36,41 +38,54 @@ export default class Uniproxy {
   public async connect(): Promise<void> {
     log.bind(this)("info", "CONNECTING");
 
-    await new Promise((resolve, reject) => {
-      const connTimeout = setTimeout(() => {
-        this.client.abort();
-        reject(new Error("CONNECTION_TIMEOUT"));
-      }, this.opts.connTimeout);
+    while (this.opts.autoReconnect === true) {
+      await new Promise((resolve, reject) => {
+        this.client.once("connect", async (connection) => {
+          this.conn = connection;
+          log.bind(this)("info", "CONNECTED");
 
-      this.client.once("connect", async (connection) => {
-        log.bind(this)("info", "CONNECTED");
-        this.conn = connection;
-        clearTimeout(connTimeout);
+          connection.on("error", async (error: Error) => {
+            log.bind(this)("error", "CONNECT_ERROR", error.toString());
+            if (this.opts.autoReconnect) resolve(true);
+            else reject(error);
+          });
 
-        connection.on("error", async (error: Error) => {
-          log.bind(this)("error", "CONNECT_ERROR", error.toString());
-          if (this.opts.autoReconnect) await this.connect();
-          else reject(error);
+          connection.on("close", async () => {
+            log.bind(this)("info", "CONNECTION_CLOSED");
+            resolve(true);
+          });
+
+          connection.on("message", this.onMessage.bind(this));
+
+          // Send first packet for initial voice
+          await this.sendFirstPacket();
         });
-        connection.on("close", async () => {
-          log.bind(this)("info", "CONNECTION_CLOSED");
-          if (this.opts.autoReconnect) await this.connect();
-        });
-        connection.on("message", this.onMessage.bind(this));
 
-        resolve(void 0);
+        this.client.connect(`${this.opts.server}`);
       });
 
-      this.client.connect(`${this.opts.server}`);
-    });
+      await setTimeout(1000);
+    }
   }
 
   public close() {
     this.conn?.close();
   }
 
+  private async sendFirstPacket() {
+    this.store.request(() =>
+      this.sendEvent("TTS", "Generate", {
+        voice: "shitova.us",
+        lang: "ru-RU",
+        format: "audio/opus",
+        emotion: "neutral",
+        quality: "UltraHigh",
+        text: "Привет",
+      })
+    );
+  }
+
   private onMessage(data: Message) {
-    let request: Partial<IAliceActiveRequest> = {};
     let response: ApiResDirectiveRoot | StreamcontrolRoot;
 
     if (data.type === "utf8") {
@@ -131,6 +146,14 @@ export default class Uniproxy {
         streamId: streamId,
       });
       this.store.stream.set(`${directive.header.streamId}`, { i: reqId });
+    } else if (type === "GoAway") {
+      // it means what we should reconnect
+      if (this.opts.app) {
+        this.opts.app.uuid = randomUUID();
+        this.opts.app.client_time = new Date().toDateString();
+        this.opts.app.timestamp = Math.floor(Date.now() / 1e3).toString();
+        this.close();
+      }
     }
   }
 

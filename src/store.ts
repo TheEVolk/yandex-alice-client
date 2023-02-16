@@ -1,3 +1,5 @@
+import { randomUUID } from "crypto";
+import { setTimeout as setTimeoutPromise } from "timers/promises";
 import { IAliceActiveRequest, IAliceClientOptions } from "./types";
 
 function MapWatch<Key, Value>(onSet?: (...args: any) => void) {
@@ -56,31 +58,48 @@ export default class Store {
   public async request(
     request: (...args: any) => string
   ): Promise<IAliceActiveRequest> {
-    // Send a request
-    const reqId = request();
+    const execute = async () => {
+      // Send a request
+      const reqId = request();
 
-    // Wait for response
-    const response: IAliceActiveRequest = await new Promise(
-      (resolve, reject): void => {
-        this.timeouters.set(
-          reqId,
-          setTimeout(() => {
+      // Wait for response
+      const response: IAliceActiveRequest = await new Promise(
+        (resolve, reject): void => {
+          this.timeouters.set(
+            reqId,
+            setTimeout(() => {
+              this.store.delete(reqId);
+              this.resolvers.delete(reqId);
+              this.timeouters.delete(reqId);
+              reject(new Error("REQUEST_TIMEOUT"));
+            }, this.opts.reqTimeout)
+          );
+          this.resolvers.set(reqId, (result) => {
             this.store.delete(reqId);
             this.resolvers.delete(reqId);
             this.timeouters.delete(reqId);
-            reject(new Error("REQUEST_TIMEOUT"));
-          }, this.opts.reqTimeout)
-        );
-        this.resolvers.set(reqId, (result) => {
-          this.store.delete(reqId);
-          this.resolvers.delete(reqId);
-          this.timeouters.delete(reqId);
-          resolve(result);
-        });
-      }
-    );
+            resolve(result);
+          });
+        }
+      );
 
-    // Return response
-    return response;
+      // Return response
+      return response;
+    };
+
+    let tries = 0;
+    while (tries < 3) {
+      tries++;
+
+      try {
+        const result = await execute();
+        tries = 3;
+        return result;
+      } catch (error) {
+        await setTimeoutPromise(3000);
+      }
+    }
+
+    return { text: { type: "", text: "" } };
   }
 }

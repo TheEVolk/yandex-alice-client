@@ -104,12 +104,8 @@ export default class YandexAliceClient {
     payload?: { [key: string]: any },
     header?: { [key: string]: any }
   ) {
-    const messageId = this.uniproxy.sendEvent(
-      "Vins",
-      "TextInput",
-      payload,
-      header
-    );
-    return { messageId };
+    return this.uniproxy.sendEvent(namespace, name, payload, header);
   }
 }
+
+export * from "./types";

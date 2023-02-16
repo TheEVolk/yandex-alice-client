@@ -1,4 +1,4 @@
-import Uniproxy from "../src/uniproxy";
+import Uniproxy from "../uniproxy";
 
 export default function log(
   this: Uniproxy,

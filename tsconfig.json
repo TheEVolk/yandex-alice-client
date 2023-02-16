@@ -9,5 +9,9 @@
     "strict": true,                                      /* Enable all strict type-checking options. */
     "useUnknownInCatchVariables": false,               /* Default catch clause variables as 'unknown' instead of 'any'. */
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
-  }
+    "declarationMap": true,
+    "declaration": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"]
 }

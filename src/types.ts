@@ -1,4 +1,4 @@
-import { Card, Item } from "../typings/api";
+import { Card, Item } from "./typings/api";
 
 export interface IAliceClientOptions {
   /**

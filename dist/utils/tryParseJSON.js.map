@@ -1,0 +1,1 @@
+{"version":3,"file":"tryParseJSON.js","sourceRoot":"","sources":["../../src/utils/tryParseJSON.ts"],"names":[],"mappings":";;AAAA,SAAwB,YAAY,CAAC,GAAW;IAC9C,IAAI;QACF,OAAO,IAAI,CAAC,KAAK,CAAC,GAAG,CAAC,QAAQ,EAAE,CAAC,CAAC;KACnC;IAAC,OAAO,CAAC,EAAE;QACV,OAAO,IAAI,CAAC;KACb;AACH,CAAC;AAND,+BAMC"}
